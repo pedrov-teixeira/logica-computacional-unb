@@ -1,6 +1,6 @@
 # Lógica Computacional 1 - UnB 🎓
 
-Repositório dedicado aos exercícios práticos e demonstrações da disciplina de Lógica Computacional 1 do curso de Licenciatura em Computação da Universidade de Brasília.
+Repositório dedicado aos exercícios práticos e demonstrações da disciplina de Lógica Computacional 1 do curso de Computação (Licenciatura) da Universidade de Brasília.
 
 ## 🎯 Objetivo
 Este espaço documenta o progresso na construção e reconhecimento de provas formais, traduzindo o raciocínio matemático de dedução natural para a verificação mecânica rigorosa no assistente de provas Rocq (antigo Coq). 
