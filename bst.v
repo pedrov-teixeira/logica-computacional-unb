@@ -283,7 +283,35 @@ Qed.
 Theorem insert_BST : forall (V : Type) (k : key) (v : V) (t : tree V),
     BST t -> BST (insert k v t).
 Proof.
-(* Substitua esta linha pela sua prova. *)Admitted.
+  intros V k v t Ht.
+  induction Ht as [| l y v' r Hl Hr Hbstl IHb ligands Hr_bst IHrb].
+  - (* Caso base: t = E *)
+    simpl.
+    apply BST_T.
+    + simpl. exact I.
+    + simpl. exact I.
+    + apply BST_E.
+    + apply BST_E.
+  - (* Caso indutivo: t = T l y v' r *)
+    simpl.
+    bdestruct (k <? y).
+    + (* k < y *)
+      apply BST_T.
+      * apply ForallT_insert; assumption.
+      * assumption.
+      * assumption.
+      * assumption.
+    + bdestruct (k >? y).
+      * (* k > y *)
+        apply BST_T.
+        -- assumption.
+        -- apply ForallT_insert; assumption.
+        -- assumption.
+        -- assumption.
+      * (* k = y *)
+        assert (k = y) by lia. subst.
+        apply BST_T; assumption.
+Qed.
 
 (** ** A correção das funções de busca [lookup] e [bound] *)
 
@@ -340,7 +368,8 @@ Theorem lookup_insert_neq :
   forall (V : Type) (t : tree V) (d : V) (k k' : key) (v : V),
    k <> k' -> lookup d k' (insert k v t) = lookup d k' t.
 Proof.
-(* Substitua esta linha pela sua prova. *)Admitted.
+  induction t; bdall.
+Qed.
 
 (** *** Questão 5 *)
 (** A relação esperada entre as funções [bound] e [lookup] é que, se
@@ -353,7 +382,8 @@ Theorem bound_default :
     bound k t = false ->
     lookup d k t = d.
 Proof.
-(* Substitua esta linha pela sua prova. *)Admitted.
+  induction t; bdall.
+Qed.
 
 (** ** Remoção *)
 
