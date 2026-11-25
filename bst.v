@@ -368,7 +368,7 @@ Theorem lookup_insert_neq :
   forall (V : Type) (t : tree V) (d : V) (k k' : key) (v : V),
    k <> k' -> lookup d k' (insert k v t) = lookup d k' t.
 Proof.
-  induction t; bdall.
+  induction t; intros; bdall.
 Qed.
 
 (** *** Questão 5 *)
@@ -382,7 +382,7 @@ Theorem bound_default :
     bound k t = false ->
     lookup d k t = d.
 Proof.
-  induction t; bdall.
+  induction t; intros; bdall.
 Qed.
 
 (** ** Remoção *)
