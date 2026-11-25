@@ -462,7 +462,23 @@ Lemma ForallT_remove_min :
     remove_min l k v r = (m, w, t') ->
     P m w /\ ForallT P t'.
 Proof.
-(* Substitua esta linha pela sua prova. *)Admitted.
+  intros V P l.
+  induction l as [| ll IHl lk lv lr _]; intros r t' k m v w Hforall Hrm.
+  - (* Caso base: l = E *)
+    simpl in Hrm. injection Hrm as <- <- <-.
+    simpl in Hforall. destruct Hforall as [Hkv [_ Hr]].
+    split; assumption.
+  - (* Caso indutivo: l = T ll lk lv lr *)
+    simpl in Hrm.
+    destruct (remove_min ll lk lv lr) as [[m0 w0] l'] eqn:Hrm_rec.
+    injection Hrm as <- <- <-.
+    simpl in Hforall. destruct Hforall as [Hkv [Hleft Hr]].
+    apply IHl in Hrm_rec; [| assumption].
+    destruct Hrm_rec as [Hm0 Hl'].
+    split.
+    + assumption.
+    + simpl. split; [assumption | split; assumption].
+Qed.
 
 (** *** Questão 7 *)
 (** Prove que [remove_min], aplicada aos componentes de uma árvore binária
@@ -475,7 +491,25 @@ Lemma remove_min_BST :
     remove_min l k v r = (m, w, t') ->
     BST t' /\ ForallT (fun y _ => y > m) t'.
 Proof.
-(* Substitua esta linha pela sua prova. *)Admitted.
+  intros V l.
+  induction l as [| ll IHl lk lv lr _]; intros r t' k m v w Hbst Hrm.
+  - (* Caso base: l = E *)
+    simpl in Hrm. injection Hrm as <- <- <-.
+    inversion Hbst; subst.
+    split; assumption.
+  - (* Caso indutivo: l = T ll lk lv lr *)
+    simpl in Hrm.
+    destruct (remove_min ll lk lv lr) as [[m0 w0] l'] eqn:Hrm_rec.
+    injection Hrm as <- <- <-.
+    inversion Hbst as [| ? ? ? ? Hlt Hgt Hbst_l Hbst_r]; subst.
+    apply IHl in Hrm_rec as [Hbst_l' Hgt_l']; [| assumption].
+    eapply ForallT_remove_min in Hlt as [Hm0_lt_k Hlt_l']; [| exact Hrm_rec].
+    split.
+    + apply BST_T; assumption.
+    + simpl. split; [lia | split; [assumption |]].
+      eapply ForallT_impl; [| exact Hgt].
+      intros y _ Hy. lia.
+Qed.
 
 (** *** Questão 8 *)
 (** Prove que, se todos os nós de [t] satisfazem uma propriedade [P], então
@@ -484,7 +518,28 @@ Proof.
 Lemma ForallT_delete : forall (V : Type) (P : key -> V -> Prop) (k : key) (t : tree V),
     ForallT P t -> ForallT P (delete k t).
 Proof.
-(* Substitua esta linha pela sua prova. *)Admitted.
+  intros V P t k Ht.
+  induction t as [| l IHl y v' r IHr].
+  - (* Caso base: t = E *)
+    simpl. exact I.
+  - (* Caso indutivo: t = T l y v' r *)
+    simpl in Ht. destruct Ht as [Hy [Hl Hr]].
+    simpl.
+    bdestruct (k <? y).
+    + (* k < y *)
+      simpl. split; [assumption | split; [apply IHl; assumption | assumption]].
+    + bdestruct (k >? y).
+      * (* k > y *)
+        simpl. split; [assumption | split; [assumption | apply IHr; assumption]].
+      * (* k = y *)
+        destruct l as [| ll lk lv lr].
+        -- (* Subcaso 3a: l = E *)
+           assumption.
+        -- (* Subcaso 3b: l = T ll lk lv lr *)
+           destruct (remove_min ll lk lv lr) as [[m w] l'] eqn:Hrm.
+           apply ForallT_remove_min in Hrm as [Hm Hl']; [| assumption].
+           simpl. split; [assumption | split; assumption].
+Qed.
 
 (** *** Questão 9 *)
 (** Prove que, ao receber uma árvore binária de busca como argumento, a
@@ -493,4 +548,38 @@ Proof.
 Theorem delete_BST : forall (V : Type) (k : key) (t : tree V),
     BST t -> BST (delete k t).
 Proof.
-(* Substitua esta linha pela sua prova. *)Admitted.
+  intros V k t Ht.
+  induction Ht as [| l y v r Hlt Hgt Hbst_l IHl Hbst_r IHr].
+  - (* Caso base: t = E *)
+    simpl. apply BST_E.
+  - (* Caso indutivo: t = T l y v r *)
+    simpl.
+    bdestruct (k <? y).
+    + (* k < y *)
+      apply BST_T.
+      * apply ForallT_delete. assumption.
+      * assumption.
+      * assumption.
+      * assumption.
+    + bdestruct (k >? y).
+      * (* k > y *)
+        apply BST_T.
+        -- assumption.
+        -- apply ForallT_delete. assumption.
+        -- assumption.
+        -- assumption.
+      * (* k = y *)
+        destruct r as [| rl rk rv rr].
+        -- (* Subcaso 3a: r = E *)
+           assumption.
+        -- (* Subcaso 3b: r = T rl rk rv rr *)
+           destruct (remove_min rl rk rv rr) as [[m w] r'] eqn:Hrm.
+           apply remove_min_BST in Hrm as [Hbst_r' Hgt_r']; [| assumption].
+           eapply ForallT_remove_min in Hgt as [Hm_gt_y _]; [| exact Hrm].
+           apply BST_T.
+           ++ eapply ForallT_impl; [| exact Hlt].
+              intros z _ Hz. lia.
+           ++ assumption.
+           ++ assumption.
+           ++ assumption.
+Qed.
