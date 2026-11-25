@@ -382,7 +382,7 @@ Theorem bound_default :
     bound k t = false ->
     lookup d k t = d.
 Proof.
-  induction t; intros; bdall.
+  induction t; bdall.
 Qed.
 
 (** ** Remoção *)
