@@ -284,7 +284,7 @@ Theorem insert_BST : forall (V : Type) (k : key) (v : V) (t : tree V),
     BST t -> BST (insert k v t).
 Proof.
   intros V k v t Ht.
-  induction Ht as [| l y v' r Hl Hr Hbstl IHb ligands Hr_bst IHrb].
+  induction Ht as [| l y v' r Hl Hr Hbstl IHbl Hr_bst IHrb].
   - (* Caso base: t = E *)
     simpl.
     apply BST_T.
@@ -382,7 +382,15 @@ Theorem bound_default :
     bound k t = false ->
     lookup d k t = d.
 Proof.
-  induction t; bdall.
+  intros V k d t.
+  induction t as [| l IHl y v r IHr]; intros H.
+  - reflexivity.
+  - simpl in H. simpl.
+    destruct (k <? y).
+    + apply IHl. exact H.
+    + destruct (k >? y).
+      * apply IHr. exact H.
+      * discriminate H.
 Qed.
 
 (** ** Remoção *)
@@ -502,13 +510,13 @@ Proof.
     destruct (remove_min ll lk lv lr) as [[m0 w0] l'] eqn:Hrm_rec.
     injection Hrm as <- <- <-.
     inversion Hbst as [| ? ? ? ? Hlt Hgt Hbst_l Hbst_r]; subst.
-    apply IHl in Hrm_rec as [Hbst_l' Hgt_l']; [| assumption].
+    pose proof (IHl _ _ _ _ _ _ Hbst_l Hrm_rec) as [Hbst_l' Hgt_l'].
     eapply ForallT_remove_min in Hlt as [Hm0_lt_k Hlt_l']; [| exact Hrm_rec].
     split.
     + apply BST_T; assumption.
     + simpl. split; [lia | split; [assumption |]].
       eapply ForallT_impl; [| exact Hgt].
-      intros y _ Hy. lia.
+      intros y val Hy. simpl in Hy. unfold gt in *. lia.
 Qed.
 
 (** *** Questão 8 *)
@@ -518,7 +526,7 @@ Qed.
 Lemma ForallT_delete : forall (V : Type) (P : key -> V -> Prop) (k : key) (t : tree V),
     ForallT P t -> ForallT P (delete k t).
 Proof.
-  intros V P t k Ht.
+  intros V P k t Ht.
   induction t as [| l IHl y v' r IHr].
   - (* Caso base: t = E *)
     simpl. exact I.
@@ -532,15 +540,14 @@ Proof.
       * (* k > y *)
         simpl. split; [assumption | split; [assumption | apply IHr; assumption]].
       * (* k = y *)
-        destruct l as [| ll lk lv lr].
-        -- (* Subcaso 3a: l = E *)
+        destruct r as [| rl rk rv rr].
+        -- (* Subcaso 3a: r = E *)
            assumption.
-        -- (* Subcaso 3b: l = T ll lk lv lr *)
-           destruct (remove_min ll lk lv lr) as [[m w] l'] eqn:Hrm.
-           apply ForallT_remove_min in Hrm as [Hm Hl']; [| assumption].
+        -- (* Subcaso 3b: r = T rl rk rv rr *)
+           destruct (remove_min rl rk rv rr) as [[m w] r'] eqn:Hrm.
+           eapply ForallT_remove_min in Hr as [Hm Hr']; [| exact Hrm].
            simpl. split; [assumption | split; assumption].
 Qed.
-
 (** *** Questão 9 *)
 (** Prove que, ao receber uma árvore binária de busca como argumento, a
     função [delete] produz uma árvore binária de busca: *)
@@ -574,11 +581,11 @@ Proof.
            assumption.
         -- (* Subcaso 3b: r = T rl rk rv rr *)
            destruct (remove_min rl rk rv rr) as [[m w] r'] eqn:Hrm.
-           apply remove_min_BST in Hrm as [Hbst_r' Hgt_r']; [| assumption].
+           pose proof (remove_min_BST V rl rr r' rk m rv w Hbst_r Hrm) as [Hbst_r' Hgt_r'].
            eapply ForallT_remove_min in Hgt as [Hm_gt_y _]; [| exact Hrm].
            apply BST_T.
            ++ eapply ForallT_impl; [| exact Hlt].
-              intros z _ Hz. lia.
+              intros z val Hz. simpl in *. unfold gt in *. lia.
            ++ assumption.
            ++ assumption.
            ++ assumption.
