@@ -341,7 +341,7 @@ Qed.
 
 (** A tática [bdall], definida a seguir, simplifica essa prova, evitando
     passos repetitivos: *)
-
+  
 Ltac bdestruct_guard :=
   match goal with
   | |- context [ if ?X =? ?Y then _ else _ ] => bdestruct (X =? Y)
